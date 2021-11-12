@@ -1,18 +1,16 @@
 from celery import Celery
 import sqlite3
 import time
-app = Celery('tasks', backend='rpc://', broker='amqp://guest:guest@localhost')
-app.conf.task_default_queue = 'updateDBqueue'
 
-@app.task
-def updateDB(x):
+app = Celery('task')
+default_config = 'celeryconfig'
+app.config_from_object(default_config)
+
+
+@app.task(serializer='json')
+def updateDB(item):
     with sqlite3.connect("test.db") as conn:
-        print("Opened database successfully",x)
-        time.sleep(20)
-        print("Opened database successfully")
-        conn.execute('''UPDATE Items SET status = 'completed' WHERE item = ?''', [x['item']])
-        print("Records updated successfully")
-        cursor = conn.execute("SELECT id, item,status from Items")
-        for row in cursor:
-            print ("Id: ", row[0],"Item: ", row[1],"Status: ", row[2])
-    return x
+        time.sleep(15)  ##Testing Perpose, It will update the status after 15 sec
+        conn.execute('''UPDATE Items SET status = 'completed' WHERE item = ?''', [item])
+        # app.log(f"{x['item']} status is updated as completed!")
+    return item

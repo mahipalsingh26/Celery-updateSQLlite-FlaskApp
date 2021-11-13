@@ -41,7 +41,7 @@ def create_main():
    if request.method=="POST":
        print(DATABASE)
        with sqlite3.connect(DATABASE) as conn:
-           conn.execute('''CREATE TABLE Items
+           conn.execute('''CREATE TABLE IF NOT EXISTS Items
                   (id INTEGER PRIMARY KEY,
                   item           varchar(20)    NOT NULL,
                   status         varchar(20)    DEFAULT 'pending');''')
@@ -60,13 +60,15 @@ def display_main():
 @api.route('/', methods=['POST'])
 def update_main():
    if request.method=="POST":
-      payload=request.get_json()
-
-      with sqlite3.connect(DATABASE) as conn:
-         conn.execute("INSERT INTO Items (item) VALUES (?)",[payload['item']])
-         r=app.send_task('consumer.updateDB',kwargs=payload)
-      
-      return '',202
+      try:
+         payload=request.get_json()
+         with sqlite3.connect(DATABASE) as conn:
+            conn.execute("INSERT INTO Items (item) VALUES (?)",[payload['item']])
+            r=app.send_task('consumer.updateDB',kwargs=payload)
+         
+         return '',202
+      except Exception:
+         return 'Something went wrong',400
 
 
 # main driver function

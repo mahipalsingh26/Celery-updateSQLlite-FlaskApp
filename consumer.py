@@ -3,7 +3,6 @@ import configparser
 import sqlite3
 import time
 import configparser
-import sys
 
 parser = configparser.RawConfigParser()   
 configFilePath = 'appconfig.conf'
@@ -16,6 +15,7 @@ exchange=parser.get('general','exchange')
 routing_key=parser.get('general','routing_key')
 result_serializer='json'
 accept_content=['application/json']
+
 # Database
 DATABASE= parser.get('general', 'DATABASE_FILE')
 
@@ -37,8 +37,11 @@ app.conf.update(
 
 @app.task()
 def updateDB(item):
-    with sqlite3.connect(DATABASE) as conn:
-        time.sleep(15)  ##Added for Testing purpose, It will update the status after 15 sec
-        #Update the latest row with item =item
-        conn.execute('''UPDATE Items SET status = 'completed' WHERE item = ? and id= (SELECT MAX(id) FROM Items WHERE item = ?)''', [item,item])
-    return item
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            time.sleep(15)  ##Added for Testing purpose, It will update the status after 15 sec
+            #Update the latest row with item =item
+            conn.execute('''UPDATE Items SET status = 'completed' WHERE item = ? and id= (SELECT MAX(id) FROM Items WHERE item = ?)''', [item,item])
+    except:
+        #we can log error
+        pass

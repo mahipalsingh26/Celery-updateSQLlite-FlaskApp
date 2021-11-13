@@ -59,4 +59,4 @@ After Running the api,
 4. Make a `SEND-DATA-TO-QUEUE` request (Response Should be empty, Code: 202).
    - It will insert the data in table. Then send data to RabbitMQ-server for process.
    - Just after `SEND-DATA-TO-QUEUE` request, Make get-data request to view data is inserted and status="pending".
-   - After 15 sec status="cempleted"
+   - After 15 sec status="completed"

@@ -3,14 +3,38 @@ import sqlite3
 from flask import Flask,request,jsonify
 from celery import Celery
 import pandas as pd
+import configparser
+
+parser = configparser.RawConfigParser()   
+configFilePath = 'appconfig.conf'
+parser.read(configFilePath)
+
+broker_url=parser.get('general','broker_url')
+result_backend=parser.get('general','result_backend')
+task_default_queue=parser.get('general','task_default_queue')
+exchange=parser.get('general','exchange')
+routing_key=parser.get('general','routing_key')
+result_serializer='json'
+accept_content=['application/json']
+# Database
+DATABASE= parser.get('general', 'DATABASE_FILE')
 
 api = Flask(__name__)
-
 app = Celery('task')
-default_config = 'celeryconfig'
-app.config_from_object(default_config)
-
-DATABASE="test.db"
+app.conf.update(
+    result_backend = result_backend,
+    broker_url = broker_url,
+    accept_content = accept_content,
+    result_serializer = result_serializer,
+    task_default_queue = task_default_queue,
+    imports=("consumer"),
+    task_routes = {
+        'updateDB': {
+            'exchange': exchange,
+            'routing_key': routing_key
+        }
+    }
+)
 
 @api.route('/create', methods=['POST'])
 def create_main():
@@ -39,11 +63,7 @@ def update_main():
       payload=request.get_json()
 
       with sqlite3.connect(DATABASE) as conn:
-         print("Opened database successfully")
          conn.execute("INSERT INTO Items (item) VALUES (?)",[payload['item']])
-         print("Records created successfully")
-         df = pd.read_sql_query("SELECT id, item,status from Items", conn)
-         print(df)
          r=app.send_task('consumer.updateDB',kwargs=payload)
       
       return '',202

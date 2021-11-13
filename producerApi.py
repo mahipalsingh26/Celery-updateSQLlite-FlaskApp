@@ -46,7 +46,7 @@ def update_main():
          print(df)
          r=app.send_task('consumer.updateDB',kwargs=payload)
       
-      return "Inserted the data and added in rabbitmq queue",204
+      return '',202
 
 
 # main driver function

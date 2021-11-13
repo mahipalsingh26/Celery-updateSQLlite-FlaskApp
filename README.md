@@ -7,7 +7,7 @@ Below steps will get you a copy of this reposistory up and running on your local
 
 ### Clone the Repository
 ```
-git clone 
+git clone https://github.com/mahipalsingh26/Celery-updateSQlite-FlaskApp.git
 ```
 
 ### Installation
